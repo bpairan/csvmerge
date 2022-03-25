@@ -1,6 +1,6 @@
 package com.bpairan.csv.merge
 
-import com.bpairan.csv.merge.CsvMerger.CsvMergeSuccessOr
+import com.bpairan.csv.merge.CsvMerger.{CarriageReturn, CsvMergeSuccessOr, LineFeed}
 
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -16,20 +16,20 @@ import scala.util.Using
  *
  * Created by Bharathi Pairan on 19/03/2022.
  */
-class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
+class CsvMerger(bufferSize: Int) {
   private val buffer = ByteBuffer.allocate(bufferSize)
 
   /**
-   * Find first position of New Line(\n) in the FileChannel
+   * Find first position of line separator in the FileChannel
    *
    * @param in             input FileChannel
    * @param buffer         byte buffer
-   * @param newLineIdx     index of new line (\n) or EOF
-   * @param isNewLineFound true on first occurrence of new line(\n) or EOF
-   * @return Index of first occurrence of new line(\n) or EOF
+   * @param newLineIdx     index of line separator or EOF
+   * @param isNewLineFound true on first occurrence of line separator or EOF
+   * @return Index of first occurrence of line separator or EOF
    */
   @tailrec
-  final def firstPositionAfterHeader(in: FileChannel, buffer: ByteBuffer, newLineIdx: Int = 0, isNewLineFound: Boolean = false): Int = {
+  final def positionAfterHeader(in: FileChannel, buffer: ByteBuffer, newLineIdx: Int = 0, isNewLineFound: Boolean = false): Int = {
     if (isNewLineFound || newLineIdx == in.size()) {
       buffer.clear()
       newLineIdx
@@ -38,7 +38,7 @@ class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
       buffer.flip()
       val (isNewLineFoundNow, bufferIdx) = findNewLinePosition(buffer)
       buffer.clear()
-      firstPositionAfterHeader(in, buffer, newLineIdx + bufferIdx, isNewLineFoundNow)
+      positionAfterHeader(in, buffer, newLineIdx + bufferIdx, isNewLineFoundNow)
     }
   }
 
@@ -73,7 +73,7 @@ class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
 
   /**
    * Copies input to output FileChannel by retaining header from first file, subsequent input file headers are ignored
-   * If input file end with empty new line then they are copied as is, you must clean the files before merging
+   * If input file end with empty line separator then they are copied as is, you must clean the files before merging if it's not desired
    *
    * @param in        input file FileChannel
    * @param out       output FileChannel
@@ -81,10 +81,10 @@ class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
    * @param inputSize total number of file paths to be merged
    */
   private final def copyFile(in: FileChannel, out: FileChannel, inIdx: Int, inputSize: Int): Unit = {
-    //Keep the header from first file for subsequent files find the position after '\n'
-    val pos = if (inIdx == 0) 0 else firstPositionAfterHeader(in, buffer)
+    //Keep the header from first file for subsequent files find the position after line separator
+    val pos = if (inIdx == 0) 0 else positionAfterHeader(in, buffer)
 
-    // if last file then retain the new line
+    // if last file then retain the line separator
     //val count = if (size - 1 == idx) in.size() - pos else in.size() - pos - 1
     val count = in.size() - pos
 
@@ -93,11 +93,12 @@ class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
   }
 
   /**
-   * Iterates the buffer until New Line (\n) is encountered
+   * Iterates the buffer until line separator is encountered
    *
    * @param buffer input byte buffer
    * @param idx    index on line
-   * @return true if New Line found, false if buffer limit is reached and the index on line
+   * @return tuple of values representing if index was found and the index
+   *         true if line separator is found, false if buffer limit is reached and the index on line
    */
   @tailrec
   private final def findNewLinePosition(buffer: ByteBuffer, idx: Int = 0): (Boolean, Int) = {
@@ -105,9 +106,10 @@ class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
       false -> idx
     } else {
       val c = buffer.get(idx)
-      if (c == lineSeparator) {
+      if (c == LineFeed || c == CarriageReturn) {
         true -> idx
-      } else {
+      }
+      else {
         findNewLinePosition(buffer, idx + 1)
       }
     }
@@ -117,5 +119,8 @@ class CsvMerger(bufferSize: Int, lineSeparator: Byte) {
 object CsvMerger {
   type CsvMergeSuccessOr[T] = Either[T, CsvMergeStatus]
 
-  def apply(bufferSize: Int = 256, lineSeparator: Byte = '\n'.toByte): CsvMerger = new CsvMerger(bufferSize, lineSeparator)
+  val LineFeed: Byte = '\n'.toByte
+  val CarriageReturn: Byte = '\r'.toByte
+
+  def apply(bufferSize: Int = 256): CsvMerger = new CsvMerger(bufferSize)
 }

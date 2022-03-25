@@ -53,9 +53,20 @@ class CsvMergerSpec extends AnyFlatSpec with EitherValues with Matchers {
     val inputPaths: Seq[Path] = Seq("classic-mac/File1.split", "classic-mac/File2.split", "classic-mac/File3.split").toInputPaths
     val outputPath: Path = newFile("File1.csv")
 
-    CsvMerger(lineSeparator =  '\r'.toByte).merge(inputPaths, ".split", ".csv").value shouldBe MergeSuccess(inputPaths, outputPath)
+    CsvMerger().merge(inputPaths, ".split", ".csv").value shouldBe MergeSuccess(inputPaths, outputPath)
 
     private val expected = Using(Source.fromFile(testResource("classic-mac/ExpectedFile1.csv").toFile))(_.mkString)
+    private val actual = Using(Source.fromFile(outputPath.toFile))(_.mkString)
+    actual shouldBe expected
+  }
+
+  it should "be merged for windows line separator" in new TestCase {
+    val inputPaths: Seq[Path] = Seq("windows/File1.split", "windows/File2.split", "windows/File3.split").toInputPaths
+    val outputPath: Path = newFile("File1.csv")
+
+    CsvMerger().merge(inputPaths, ".split", ".csv").value shouldBe MergeSuccess(inputPaths, outputPath)
+
+    private val expected = Using(Source.fromFile(testResource("windows/ExpectedFile1.csv").toFile))(_.mkString)
     private val actual = Using(Source.fromFile(outputPath.toFile))(_.mkString)
     actual shouldBe expected
   }

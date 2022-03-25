@@ -4,9 +4,7 @@ Lightning fast Zero Copy CSV files merger for JVM
 
 Merges input CSV files without loading them into memory
 
-Supports file merging with Unix(`\n`) new line and Classic Mac OS(`\r`) carriage return. 
-
-Windows line separator `\r\n` is currently not supported but expected soon.
+All line separators CR, LF or CRLF are retained as is after merge
 
 ## usage
 
