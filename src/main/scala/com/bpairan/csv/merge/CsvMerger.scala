@@ -69,19 +69,17 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
     //Keep the header from first file for subsequent files find the position after line separator
     val newLine = if (hasHeader && inIdx > 0) skipHeader(in) else NewLine(0, isFound = false)
 
-    // if last file then retain the line separator
-    //val bytesSize = if (inputSize - 1 == idx) in.size() - startPosition else in.size() - startPosition - 1
     val bytesSize = in.size() - newLine.idx
 
     LineSeparatorStyle.from(in) match {
       case NoLineSeparator =>
-        log.info("Has no line separator")
+        log.debug("Has no line separator")
         in.transferTo(newLine.idx, bytesSize, out)
         if (inputSize - 1 != inIdx) {
           addLineSeparator(in, out)
         }
       case HasLineSeparator =>
-        log.info("Has line separator")
+        log.debug("Has line separator")
         if (inputSize - 1 != inIdx) {
           in.transferTo(newLine.idx, bytesSize, out)
         } else {
