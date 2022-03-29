@@ -85,6 +85,18 @@ class CsvMergerSpec extends AnyFlatSpec with Matchers {
     actual shouldBe expected
   }
 
+  it should "merge files with EOF empty line" in new TestCase {
+    val inputPaths: Seq[Path] = Seq("empty-line/File1.split", "empty-line/File2.split", "empty-line/File3.split").toInputPaths
+    val outputPath: Path = newFile("ExpectedFile.csv")
+
+    CsvMerger().merge(inputPaths, outputPath) shouldBe MergeSuccess(inputPaths, outputPath).validNel
+
+    private val expected = Using(Source.fromFile(testResource("empty-line/ExpectedFile.csv").toFile))(_.mkString)
+    private val actual = Using(Source.fromFile(outputPath.toFile))(_.mkString)
+
+    actual shouldBe expected
+  }
+
   it should "be LF" in {
     val buffer = ByteBuffer.allocate(4)
     buffer.put(LFByte)

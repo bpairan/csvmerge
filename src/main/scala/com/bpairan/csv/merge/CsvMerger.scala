@@ -2,7 +2,7 @@ package com.bpairan.csv.merge
 
 import cats.data.ValidatedNel
 import cats.implicits._
-import com.bpairan.csv.merge.CsvMerger.{CRByte, CsvMergeErrorsOr, LFByte, PathOps, hasNoLineSeparator}
+import com.bpairan.csv.merge.CsvMerger.{CRByte, CsvMergeErrorsOr, LFByte, PathOps}
 import org.slf4j.LoggerFactory
 
 import java.nio.ByteBuffer
@@ -66,13 +66,6 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
    * @param inputSize total number of file paths to be merged
    */
   private final def copyFile(in: FileChannel, out: FileChannel, inIdx: Int, inputSize: Int): Unit = {
-
-    /*    val startPosition = if (hasHeader && inIdx > 0) {
-          skipHeader(in).idx
-        } else {
-          0
-        }*/
-
     //Keep the header from first file for subsequent files find the position after line separator
     val newLine = if (hasHeader && inIdx > 0) skipHeader(in) else NewLine(0, isFound = false)
 
@@ -80,30 +73,42 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
     //val bytesSize = if (inputSize - 1 == idx) in.size() - startPosition else in.size() - startPosition - 1
     val bytesSize = in.size() - newLine.idx
 
-    in.transferTo(newLine.idx, bytesSize, out)
-    if (inputSize - 1 != inIdx) {
-      addLineSeparatorIfRequired(in, out)
+    LineSeparatorStyle.from(in) match {
+      case NoLineSeparator =>
+        log.info("Has no line separator")
+        in.transferTo(newLine.idx, bytesSize, out)
+        if (inputSize - 1 != inIdx) {
+          addLineSeparator(in, out)
+        }
+      case HasLineSeparator =>
+        log.info("Has line separator")
+        if (inputSize - 1 != inIdx) {
+          in.transferTo(newLine.idx, bytesSize, out)
+        } else {
+          in.transferTo(newLine.idx, bytesSize - 1, out)
+        }
     }
+
     log.debug(s"output file size:${out.size()}")
   }
 
-  private def addLineSeparatorIfRequired(in: FileChannel, out: FileChannel): Unit = {
-    in.read(buffer, in.size() - 4)
-    buffer.flip()
-    if (hasNoLineSeparator(buffer)) {
-      log.info("Has no line separator")
-      writeBuffer.clear()
-      in.position(0)
-      val newLine = skipHeader(in)
-      newLine.separator match {
-        case Some(value) => value.toBytes.foreach(writeBuffer.put)
-        case None => writeBuffer.put(LFByte)
-      }
-      writeBuffer.flip()
-      out.write(writeBuffer)
+  /**
+   * Finds the line separator of the input file and adds to the out channel
+   *
+   * @param in  input [[FileChannel]]
+   * @param out output [[FileChannel]]
+   */
+  private def addLineSeparator(in: FileChannel, out: FileChannel): Unit = {
+    writeBuffer.clear()
+    in.position(0)
+    val newLine = skipHeader(in)
+    newLine.separator match {
+      case Some(value) => value.toBytes.foreach(writeBuffer.put)
+      case None => writeBuffer.put(LFByte)
     }
+    writeBuffer.flip()
+    out.write(writeBuffer)
   }
-
 
   /**
    * Find first position of line separator in the FileChannel
@@ -113,7 +118,6 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
    * @return Index of first occurrence of line separator or EOF
    */
   @tailrec
-  //final def skipHeader(in: FileChannel, newLineIdx: Int = 0, isNewLineFound: Boolean = false): Int = {
   final def skipHeader(in: FileChannel, newLine: NewLine = NewLine(0, isFound = false)): NewLine = {
     if (newLine.isFound || newLine.idx == in.size()) {
       buffer.clear()
