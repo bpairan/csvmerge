@@ -23,7 +23,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.11" % "test"
 libraryDependencies ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, n)) if n == 12 =>
-      List(compilerPlugin("com.github.bigwheel" % "util-backports" % "2.1" cross CrossVersion.full))
+      List(compilerPlugin("com.github.bigwheel" % "util-backports" % "2.1" cross CrossVersion.binary))
     case _ => Nil
   }
 }

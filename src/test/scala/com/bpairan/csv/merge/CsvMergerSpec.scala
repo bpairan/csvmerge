@@ -6,8 +6,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.ByteBuffer
-import java.nio.file.{Files, Path, Paths}
-import java.util.UUID
+import java.nio.file.{Path, Paths}
 import scala.io.Source
 import scala.util.Using
 
@@ -15,26 +14,6 @@ import scala.util.Using
  * Created by Bharathi Pairan on 24/03/2022.
  */
 class CsvMergerSpec extends AnyFlatSpec with Matchers {
-
-  trait TestCase {
-    val prefix = "csv-merge"
-    val tempDir: Path = Files.createTempDirectory(prefix)
-
-    def newFile(fileName: String = UUID.randomUUID().toString, folder: String = ""): Path = {
-      tempDir.resolve(folder).resolve(fileName)
-    }
-
-    def testResource(path: String): Path = {
-      Paths.get("").toAbsolutePath.resolve("src/test/resources").resolve(Paths.get(path)).normalize()
-    }
-
-    implicit class InputPaths(paths: Seq[String]) {
-      def toInputPaths: Seq[Path] = {
-        paths.map(testResource).map(path => Files.copy(path, tempDir.resolve(path.getFileName)))
-      }
-    }
-
-  }
 
   it should "be merged for unix line separator" in new TestCase {
     val inputPaths: Seq[Path] = Seq("unix/File1.split", "unix/File2.split", "unix/File3.split").toInputPaths

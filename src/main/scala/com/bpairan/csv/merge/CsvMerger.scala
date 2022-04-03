@@ -67,7 +67,7 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
    */
   private final def copyFile(in: FileChannel, out: FileChannel, inIdx: Int, inputSize: Int): Unit = {
     //Keep the header from first file for subsequent files find the position after line separator
-    val newLine = if (hasHeader && inIdx > 0) skipHeader(in) else NewLine(0, isFound = false)
+    val newLine = if (hasHeader && inIdx > 0) skipHeader(in) else NewLine(0, isFound = false) //TODO: If first file then read the just the header
 
     val bytesSize = in.size() - newLine.idx
 
