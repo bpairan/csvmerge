@@ -10,10 +10,14 @@ ThisBuild / versionScheme := Some("early-semver")
 
 ThisBuild / scmInfo := Some(ScmInfo(url("https://github.com/bpairan/csvmerge"), "git@github.com:bpairan/csvmerge.git"))
 
-ThisBuild / developers := List(Developer("bpairan", "Bharathi Pairan", "bharathi.pairan@gmail.com", url("https://gitlab.com/bpairan")))
+ThisBuild / developers := List(Developer("bpairan", "Bharathi Pairan", "bharathi.pairan@gmail.com", url("https://github.com/bpairan")))
+
+ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
+ThisBuild / sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 
 ThisBuild / publishTo := {
   val nexus = "https://s01.oss.sonatype.org/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
+
