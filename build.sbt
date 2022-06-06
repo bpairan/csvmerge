@@ -27,3 +27,5 @@ Compile / scalacOptions ++= {
     case _ => Nil
   }
 }
+
+ThisBuild / publish / skip := true
