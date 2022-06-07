@@ -14,4 +14,4 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run Coverage tests
-        run: sbt "test; coverageReport"
+        run: sbt "+test; +coverageReport"
