@@ -1,14 +1,15 @@
 package com.bpairan.csv.merge
 
-import cats.data.ValidatedNel
+import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import com.bpairan.csv.merge.CsvMerger.{CRByte, CsvMergeErrorsOr, LFByte, PathOps}
+import com.bpairan.csv.merge.javaApi.CsvMergerException
 import org.slf4j.LoggerFactory
-
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.{CREATE, READ, TRUNCATE_EXISTING, WRITE}
+
 import scala.annotation.tailrec
 import scala.util.Using
 
@@ -21,6 +22,15 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
   private val log = LoggerFactory.getLogger(getClass)
   private val buffer = ByteBuffer.allocate(bufferSize)
   private val writeBuffer = ByteBuffer.allocate(2)
+
+
+  def mergeNative(inputPaths: Seq[Path], outputPath: Path): CsvMergeStatus = {
+    merge(inputPaths, outputPath) match {
+      case Validated.Valid(a) => a
+      case Validated.Invalid(e) => throw new CsvMergerException(e.map(_.message).mkString_(","))
+    }
+  }
+
 
   /**
    * Merges input file paths to specified file extension. Keeps header from first file and drops it for rest of them
@@ -67,7 +77,7 @@ class CsvMerger(bufferSize: Int, hasHeader: Boolean) {
    */
   private final def copyFile(in: FileChannel, out: FileChannel, inIdx: Int, inputSize: Int): Unit = {
     //Keep the header from first file for subsequent files find the position after line separator
-    val newLine = if (hasHeader && inIdx > 0) skipHeader(in) else NewLine(0, isFound = false) //TODO: If first file then read the just the header
+    val newLine = if (hasHeader && inIdx > 0) skipHeader(in) else NewLine(0, isFound = false)
 
     val bytesSize = in.size() - newLine.idx
 
