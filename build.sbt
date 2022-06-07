@@ -38,11 +38,7 @@ ThisBuild / libraryDependencies ++= Seq(
 ThisBuild / libraryDependencies += "org.typelevel" %% "cats-core" % "2.7.0"
 ThisBuild / libraryDependencies += "com.github.bigwheel" %% "util-backports" % "2.1"
 
-ThisBuild / libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.2.12" % Test,
-  "junit" % "junit" % "4.13.2" % Test,
-  "com.novocode" % "junit-interface" % "0.11" % Test
-)
+ThisBuild / libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.12" % Test
 
 ThisBuild / Compile / scalacOptions ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
