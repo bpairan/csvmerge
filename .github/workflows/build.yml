@@ -1,0 +1,17 @@
+name: Build
+
+on:
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    name: sbt test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Run Coverage tests
+        run: sbt "test; coverageReport"
