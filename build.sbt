@@ -22,10 +22,7 @@ ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 ThisBuild / sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 
-ThisBuild / publishTo := sonatypePublishToBundle.value
-
 name := "csvmerge"
-version := "1.0.0-SNAPSHOT"
 
 ThisBuild / versionScheme := Some("semver-spec")
 
