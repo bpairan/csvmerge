@@ -1,7 +1,7 @@
 package com.bpairan.csv.merge.javaApi;
 
 import com.bpairan.csv.merge.CsvMergeStatus;
-import scala.jdk.javaapi.CollectionConverters;
+import com.bpairan.csv.merge.LangConversions;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -36,7 +36,7 @@ public class CsvMerger {
      * @throws CsvMergerException if merge fails
      */
     public CsvMergeStatus merge(List<Path> inputPaths, Path outputPath) throws CsvMergerException {
-        return new com.bpairan.csv.merge.CsvMerger(bufferSize, hasHeader).mergeNative(CollectionConverters.asScala(inputPaths).toSeq(), outputPath);
+        return new com.bpairan.csv.merge.CsvMerger(bufferSize, hasHeader).mergeNative(LangConversions.asScalaSeq(inputPaths), outputPath);
     }
 
 }
