@@ -7,6 +7,8 @@ scalaVersion := scala213
 name := "csvmerge"
 version := "1.0.0-SNAPSHOT"
 
+ThisBuild / versionScheme := Some("semver-spec")
+
 coverageEnabled := true
 
 crossPaths := true

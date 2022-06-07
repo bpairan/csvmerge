@@ -12,3 +12,5 @@ ThisBuild / developers := List(Developer("bpairan", "Bharathi Pairan", "bharathi
 
 ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 ThisBuild / sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+
+ThisBuild / publishTo := sonatypePublishToBundle.value
